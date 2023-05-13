@@ -12,6 +12,13 @@ var reader = new PrologReader();
 
 reader.ReadFile(path);
 
-var matrix = new MatrixBuilder().Build(reader.solutions);
+var ruleTrimmer = new RuleTrimmer();
 
-Console.WriteLine(matrix);
+var unnecessaryRules = ruleTrimmer.TrimRules(reader.solutions, out var trimmedSolutions);
+
+
+Console.WriteLine(unnecessaryRules);
+
+//var matrix = new MatrixBuilder().Build(reader.solutions);
+
+//Console.WriteLine(matrix);
