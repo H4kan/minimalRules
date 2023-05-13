@@ -6,7 +6,7 @@ Console.WriteLine("Hello, World!");
 
 
 
-var path = "C:\\Projects\\TravelAgencySE\\DataBase.pl";
+var path = "C:\\Users\\rafci\\Desktop\\TravelAgencySE\\DataBase.pl";
 
 var reader = new PrologReader();
 
@@ -16,9 +16,16 @@ var ruleTrimmer = new RuleTrimmer();
 
 var unnecessaryRules = ruleTrimmer.TrimRules(reader.solutions, out var trimmedSolutions);
 
+var newPath = "C:\\Users\\rafci\\Desktop\\TravelAgencySE\\DataBase1.pl";
+System.IO.File.Move(path, newPath);
 
-Console.WriteLine(unnecessaryRules);
 
-//var matrix = new MatrixBuilder().Build(reader.solutions);
+var writer = new DataBaseWriter();
 
-//Console.WriteLine(matrix);
+writer.WriteDatabase(unnecessaryRules, path, newPath);
+
+
+System.IO.File.Delete(path);
+System.IO.File.Move(newPath,path);
+System.IO.File.Delete(newPath);
+
