@@ -32,26 +32,26 @@ namespace minimalRules
             var discrimination = new List<string>();
             foreach (var rule in solution1.Rules)
             {
-                if (solution2.Rules.Any(r => r.Item1 == rule.Item1))
+                if (solution2.Rules.Any(r => r.Name == rule.Name))
                 {
-                    var matchingRule = solution2.Rules.First(r => r.Item1 == rule.Item1);
+                    var matchingRule = solution2.Rules.First(r => r.Name == rule.Name);
 
-                    if (matchingRule.Item2 != rule.Item2)
+                    if (matchingRule.Value != rule.Value)
                     {
-                        discrimination.Add(rule.Item1);
+                        discrimination.Add(rule.Name);
                     }
                 }
-                else if (!rule.Item2.EndsWith("1"))
+                else if (!rule.Value.EndsWith("1"))
                 {
-                    discrimination.Add(rule.Item1);
+                    discrimination.Add(rule.Name);
                 }
             }
 
             foreach (var rule in solution2.Rules)
             {
-                if (!solution1.Rules.Any(r => r.Item1 == rule.Item1) && !rule.Item2.EndsWith("1"))
+                if (!solution1.Rules.Any(r => r.Name == rule.Name) && !rule.Value.EndsWith("1"))
                 {
-                    discrimination.Add(rule.Item1);
+                    discrimination.Add(rule.Name);
                 }
      
             }

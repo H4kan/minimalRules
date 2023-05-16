@@ -10,7 +10,18 @@ namespace minimalRules
     {
         public string Name { get; set; }
 
-        public List<(string, string)> Rules { get; set; }
+        public List<Rule> Rules { get; set; }
 
+    }
+
+    public class Rule
+    {
+        public string Name { get; set; }
+
+        public string Value { get; set; }
+
+        public bool IsRRule { get; set; }
+
+        public string InFileName => IsRRule ? string.Join("_", Name, Value) : Name;
     }
 }
