@@ -101,10 +101,10 @@ namespace minimalRules
                 return "  R is 1.";
             }
             var sb = new StringBuilder();
-            sb.Append("  R is ");
+            sb.Append("  R is");
             for (int i = 1; i <= ruleIt - 1; i++)
             {
-                sb.Append($"R{i} *");
+                sb.Append($" R{i} *");
             }
             sb.Append($" R{ruleIt}.");
             return sb.ToString();

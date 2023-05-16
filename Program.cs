@@ -23,7 +23,7 @@ _ = ruleTrimmer.TrimRules(reader.solutions, out var trimmedSolutions);
 
 var writer = new DataBaseWriter();
 
-writer.WriteDatabase(reader.solutions, newPath, path);
+writer.WriteDatabase(trimmedSolutions, newPath, path);
 
 
 
