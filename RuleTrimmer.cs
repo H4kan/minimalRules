@@ -22,7 +22,7 @@ namespace minimalRules
 
             var baseMatrix = this.builder.Build(solutions);
 
-            var distinctProps = solutions.SelectMany(s => s.Rules).Select(r => r.Item1).Distinct().ToList();
+            var distinctProps = solutions.SelectMany(s => s.Rules).Select(r => r.Name).Distinct().ToList();
 
             distinctProps = distinctProps.OrderBy(d => this.CountProps(baseMatrix, d)).ToList();
 
@@ -70,7 +70,7 @@ namespace minimalRules
                 var newSolution = new Solution()
                 {
                     Name = solution.Name,
-                    Rules = solution.Rules.Where(r => r.Item1 != prop).ToList()
+                    Rules = solution.Rules.Where(r => r.Name != prop).ToList()
                 };
                 excludeSolutions.Add(newSolution);
             }
