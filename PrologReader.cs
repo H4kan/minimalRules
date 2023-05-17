@@ -37,17 +37,25 @@ namespace minimalRules
             if (lines[it].StartsWith("solution(unknown)"))
                 return false;
 
-            var solName = ParseLine(lines[it]).Item2;
+            var solName = GetSolutionName(lines[it]);
             it++;
 
-            var activites = new List<(string, string)>() { };
+            var activites = new List<(string, string, bool)>() { };
 
-            while (!string.IsNullOrWhiteSpace(lines[it]))
+            while (!string.IsNullOrWhiteSpace(lines[it]) && !IsRLogicLine(lines[it]))
             {
-                var parsedLine = ParseLine(lines[it]);
+                (string, string, bool) parsedLine;
+                if (IsRRuleLine(lines[it]))
+                {
+                    parsedLine = ParseRLine(lines[it]);
+                }
+                else
+                {
+                    parsedLine = ParseLine(lines[it]);
+                }
                 if (!parsedLine.Item1.StartsWith("%"))
                 {
-                    activites.Add(ParseLine(lines[it]));
+                    activites.Add(parsedLine);
                 }
                 it++;
             }
@@ -55,14 +63,37 @@ namespace minimalRules
             solutions.Add(new Solution()
             {
                 Name = solName,
-                Rules = activites
+                Rules = activites.Select(a => new Rule()
+                {
+                    Name = a.Item1,
+                    Value = a.Item2,
+                    IsRRule = a.Item3
+                }).ToList()
             });
             endIt = it;
 
             return true;
         }
 
-        private (string, string) ParseLine(string line)
+        private bool IsRRuleLine(string line)
+        {
+            return line.Contains("R");
+        }
+
+        private (string, string, bool) ParseRLine(string line)
+        {
+            var handler = ParseLine(line).Item1.Split("_");
+            return (handler[0], handler[1], true);
+        }
+
+        private bool IsRLogicLine(string line)
+        {
+            int it = 0;
+            while (line[it] == ' ') it++;
+            return line.Substring(it).StartsWith("R is");
+        }
+
+        public static (string, string, bool) ParseLine(string line)
         {
             int it = 0;
             while (line[it] != '(')
@@ -77,7 +108,13 @@ namespace minimalRules
             }
             var value = line.Substring(it + 1, nextIt - it - 1);
 
-            return (rule, value);
+            return (rule, value, false);
+        }
+
+        public static string GetSolutionName(string line)
+        {
+            var parsed = ParseLine(line);
+            return parsed.Item2.Split(",")[0];
         }
     }
 }

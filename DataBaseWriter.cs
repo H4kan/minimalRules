@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,33 +9,25 @@ namespace minimalRules
 {
     internal class DataBaseWriter
     {
-        public void WriteDatabase(List<string> unnecessaryRules, string WritePath, string ReadPath)
+        public void WriteDatabase(List<Solution> solutions, string WritePath, string ReadPath)
         {
             string[] lines = File.ReadAllLines(ReadPath);
             using (StreamWriter writer = new StreamWriter(WritePath))
             {
                 int it = 0;
 
-                while (CopyDataAndModifySolution(lines, ref  it,  writer, unnecessaryRules)) { };
+                CopyUnchangedData(lines, ref it, writer, out bool EOF);
+                if (EOF) return;
+                while (WriteSolution(lines, ref it, writer, solutions)) { };
+                it++;
+
+                writer.WriteLine("solution(unknown).");
+
+                CopyUnchangedData(lines, ref it, writer, out _);
             }
 
         }
-        
-        private bool CopyDataAndModifySolution(string[] lines, ref int it, StreamWriter writer, List<string> unnecessaryRules)
-        {
-            CopyUnchangedData(lines, ref it, writer, out bool EOF);
-
-            if (EOF) return false;
-
-            writer.WriteLine(lines[it]);
-            it++;
-            if (!lines[it-1].StartsWith("solution(unknown)"))
-            {    
-                    ModifySolution(lines,ref it, writer, unnecessaryRules);                    
-                
-            }
-            return true;
-        }
+       
         private int CopyUnchangedData(string[] lines, ref int it, StreamWriter writer, out bool EOF)
         {
             EOF = false;
@@ -48,45 +41,83 @@ namespace minimalRules
             return it;
         }
 
-        private void ModifySolution(string[] lines,ref int it, StreamWriter writer, List<string> unnecessaryRules)
+        private bool WriteSolution(string[] lines,ref int it, StreamWriter writer, List<Solution> solutions)
         {
-            string attribute, value;
-            string? attributeToWrite, valueToWrite;
+            string solName;
 
-
-            (attributeToWrite, valueToWrite) = (null, null);
-
-            while (!string.IsNullOrWhiteSpace(lines[it]))
+            while (string.IsNullOrWhiteSpace(lines[it]) || !lines[it].StartsWith("solution("))
             {
-                (attribute, value) = ParseLine(lines[it]);
-                if (!attribute.StartsWith("%") && !unnecessaryRules.Contains(attribute))
-                {
-                    if(attributeToWrite != null) writer.WriteLine($"  {attributeToWrite}({valueToWrite}),");
-
-                    (attributeToWrite, valueToWrite) = (attribute, value);
-                }
-                it++;
+                it++;  
             }
-            if (attributeToWrite != null) writer.WriteLine($"  {attributeToWrite}({valueToWrite}).");
+            solName = PrologReader.GetSolutionName(lines[it]);
+            if (solName == "unknown")
+            {
+                return false;
+            }
+            it++;
+
+            var targetSolution = solutions.Where(s => s.Name == solName).FirstOrDefault();
+
+            if (targetSolution != null)
+            {
+                writer.WriteLine(ConstructSolutionHeader(targetSolution));
+
+                int ruleIt = 0;
+                targetSolution.Rules.ForEach(r =>
+                {
+                    writer.WriteLine(this.ConstructRuleLine(r, ref ruleIt));
+                });
+                writer.WriteLine(ConstructPostPoneLine(ruleIt));
+
+                writer.WriteLine();
+            }
+            return true;
         }
 
-
-        private (string, string) ParseLine(string line)
+        private string ConstructSolutionHeader(Solution solution)
         {
-            int it = 0;
-            while (line[it] != '(')
-            {
-                it++;
-            }
-            var rule = line.Substring(2, it - 2);
-            var nextIt = it;
-            while (line[nextIt] != ')')
-            {
-                nextIt++;
-            }
-            var value = line.Substring(it + 1, nextIt - it - 1);
+            var sb = new StringBuilder();
+            sb.Append($"solution({solution.Name}, R) :- ");
 
-            return (rule, value);
+            var rRules = solution.Rules.Where(r => r.IsRRule).ToList();
+
+            for (int i = 1; i <= rRules.Count; i++)
+            {
+                sb.Append($"{rRules[i - 1].Name}(X{i}),");
+            }
+
+            return sb.ToString();
+        }
+        private string ConstructRuleLine(Rule rule, ref int ruleIt)
+
+        {
+            return $"  {rule.InFileName}({ConstructRuleValue(rule, ref ruleIt)}),";
+        }
+
+        private string ConstructPostPoneLine(int ruleIt)
+        {
+            if (ruleIt == 0)
+            {
+                return "  R is 1.";
+            }
+            var sb = new StringBuilder();
+            sb.Append("  R is");
+            for (int i = 1; i <= ruleIt - 1; i++)
+            {
+                sb.Append($" R{i} *");
+            }
+            sb.Append($" R{ruleIt}.");
+            return sb.ToString();
+        }
+
+        private string ConstructRuleValue(Rule rule, ref int ruleIt)
+        {
+            if (rule.IsRRule)
+            {
+                ruleIt++;
+                return $"R{ruleIt}, X{ruleIt}";
+            }
+            return rule.Value;
         }
     }
 }
