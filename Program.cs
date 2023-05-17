@@ -4,8 +4,8 @@ using minimalRules;
 
 
 
-var path = "C:\\Users\\rafci\\Desktop\\TravelAgencySE\\DataBase.pl";
-var newPath = "C:\\Users\\rafci\\Desktop\\TravelAgencySE\\DataBase1.pl";
+var path = "DataBase.pl";
+var newPath = "DataBase1.pl";
 
 if(File.Exists(newPath))
 {
