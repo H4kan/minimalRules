@@ -5,11 +5,12 @@ using minimalRules;
 
 
 var path = "DataBase.pl";
-var newPath = "DataBase1.pl";
+var newPath = "DataBaseOrigin.pl";
 
 if(File.Exists(newPath))
 {
-    System.IO.File.Delete(newPath);
+    System.IO.File.Delete(path);
+    System.IO.File.Move(newPath,path);
 }
 
 var reader = new PrologReader();
@@ -23,7 +24,9 @@ _ = ruleTrimmer.TrimRules(reader.solutions, out var trimmedSolutions);
 
 var writer = new DataBaseWriter();
 
-writer.WriteDatabase(trimmedSolutions, newPath, path);
+System.IO.File.Move(path, newPath);
+
+writer.WriteDatabase(trimmedSolutions, path, newPath);
 
 
 
