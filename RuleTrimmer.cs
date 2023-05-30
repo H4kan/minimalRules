@@ -22,9 +22,9 @@ namespace minimalRules
 
             var baseMatrix = this.builder.Build(solutions);
 
-            var distinctProps = solutions.SelectMany(s => s.Rules).Select(r => r.Name).Distinct().ToList();
+            var distinctRules = solutions.SelectMany(s => s.Rules).GroupBy(r => r.Name).Select(g => g.First()).ToList();
 
-            distinctProps = distinctProps.OrderBy(d => this.CountProps(baseMatrix, d)).ToList();
+            var distinctProps = distinctRules.OrderBy(d => this.CountProps(baseMatrix, d)).Select(r => r.Name).ToList();
 
             var handlerSolution = solutions.Select(s => s).ToList();
             
@@ -46,13 +46,13 @@ namespace minimalRules
             return unnecessaryRules;
         }
 
-        private int CountProps(List<string>[,] matrix, string prop)
+        private int CountProps(List<string>[,] matrix, Rule rule)
         {
-            int count = 0;
+            int count = rule.IsRRule ? -1000 : 0;
             for (int i = 0; i < matrix.GetLength(0); i++)
                 for (int j = 0; j < i; j++)
                 {
-                    if (matrix[i, j].Contains(prop))
+                    if (matrix[i, j].Contains(rule.Name))
                     {
                         count++;
                     }
